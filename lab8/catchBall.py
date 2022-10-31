@@ -17,24 +17,24 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 counter = 0
+class Ball:
+    __x = 0
+    __y = 0
+    __r = 0
+    def get_x(self):
+        return self.__x
+    def get_y(self):
+        return self.__y
+    def get_r(self):
+        return self.__r
+    def new_ball(self):
+        '''рисует новый шарик '''
 
-def new_ball():
-    '''рисует новый шарик '''
-    global x, y, r
-    x = randint(100, 700)
-    y = randint(100, 500)
-    r = randint(30, 50)
-    color = COLORS[randint(0, 5)]
-    circle(screen, color, (x, y), r)
-
-def new_balls():
-    k = randint(1, 3)
-    for i in range(k):
-        new_ball()
-
-
-def click(event):
-    print(x, y, r)
+        self.__x = randint(100, 700)
+        self.__y = randint(100, 500)
+        self.__r = randint(30, 50)
+        color = COLORS[randint(0, 5)]
+        circle(screen, color, (self.__x, self.__y), self.__r)
 
 
 def isCaught(event, x, y, r):
@@ -57,11 +57,14 @@ while not finished:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # click(event)
-            if isCaught(event, x, y, r):
+            if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()) or isCaught(event, ball2.get_x(), ball2.get_y(), ball2.get_r()):
                 counter += 1
             # print('Click!', event.pos[0], event.pos[1], x, y, r)
     text_surface = my_font.render(f'COUNTER: {counter}', False, (255, 255, 255))
-    new_ball()
+    ball1 = Ball()
+    ball1.new_ball()
+    ball2 = Ball()
+    ball2.new_ball()
     pygame.display.update()
     screen.fill(BLACK)
     screen.blit(text_surface, (50, 50))
