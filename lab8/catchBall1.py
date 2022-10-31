@@ -1,6 +1,9 @@
+import time
+
 import pygame
 from pygame.draw import *
 from random import randint
+import time
 
 pygame.init()
 my_font = pygame.font.SysFont('Comic Sans MS', 30)
@@ -20,10 +23,11 @@ counter = 0
 
 
 class Ball:
-    __x = 0
-    __y = 0
-    __r = 0
-
+    __x = randint(100, 700)
+    __y = randint(100, 500)
+    __r = randint(30, 50)
+    __v_x = 50
+    __v_y = 50
     def get_x(self):
         return self.__x
 
@@ -33,21 +37,19 @@ class Ball:
     def get_r(self):
         return self.__r
 
-    def new_ball(self):
-        '''рисует новый шарик '''
+    def get_v_x(self):
+        return self.__v_x
 
-        self.__x = randint(100, 700)
-        self.__y = randint(100, 500)
-        self.__r = randint(30, 50)
-        color = COLORS[randint(0, 5)]
-        circle(screen, color, (self.__x, self.__y), self.__r)
+    def get_v_y(self):
+        return self.__v_y
+
 
     def new_moving_ball(self):
         '''рисует новый движущийся шарик '''
 
-        self.__x = randint(100, 700)
-        self.__y = randint(100, 500)
-        self.__r = randint(30, 50)
+        self.__x += self.__v_x
+        self.__y += self.__v_y
+
         color = COLORS[randint(0, 5)]
         circle(screen, color, (self.__x, self.__y), self.__r)
 
@@ -72,15 +74,15 @@ while not finished:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # click(event)
-            if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()) or isCaught(event, ball2.get_x(),
-                                                                                        ball2.get_y(), ball2.get_r()):
+            if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()):
                 counter += 1
             # print('Click!', event.pos[0], event.pos[1], x, y, r)
     text_surface = my_font.render(f'COUNTER: {counter}', False, (255, 255, 255))
     ball1 = Ball()
-    ball2 = Ball()
-    ball1.new_ball()
-    ball2.new_ball()
+    # ball2 = Ball()
+    ball1.new_moving_ball()
+
+    # ball2.new_ball()
     pygame.display.update()
     screen.fill(BLACK)
     screen.blit(text_surface, (50, 50))
