@@ -42,15 +42,6 @@ class Ball:
         color = COLORS[randint(0, 5)]
         circle(screen, color, (self.__x, self.__y), self.__r)
 
-    def new_moving_ball(self):
-        '''рисует новый движущийся шарик '''
-
-        self.__x = randint(100, 700)
-        self.__y = randint(100, 500)
-        self.__r = randint(30, 50)
-        color = COLORS[randint(0, 5)]
-        circle(screen, color, (self.__x, self.__y), self.__r)
-
 
 def isCaught(event, x, y, r):
     if (x - event.pos[0]) ** 2 + (y - event.pos[1]) ** 2 < r ** 2:
@@ -71,11 +62,10 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # click(event)
             if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()) or isCaught(event, ball2.get_x(),
                                                                                         ball2.get_y(), ball2.get_r()):
                 counter += 1
-            # print('Click!', event.pos[0], event.pos[1], x, y, r)
+
     text_surface = my_font.render(f'COUNTER: {counter}', False, (255, 255, 255))
     ball1 = Ball()
     ball2 = Ball()
