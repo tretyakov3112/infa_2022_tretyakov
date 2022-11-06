@@ -28,11 +28,20 @@ class Ball:
     __r = randint(30, 50)
     __v_x = 50
     __v_y = 50
+    def __init__(self, x: int, y: int):
+        self.__x = (Ball.__x if x == None else x)
+        self.__y = (Ball.__y if y == None else y)
     def get_x(self):
         return self.__x
+    def set_x(self, x):
+        self.__x = x
+
 
     def get_y(self):
         return self.__y
+
+    def set_y(self, y):
+        self.__y = y
 
     def get_r(self):
         return self.__r
@@ -46,12 +55,13 @@ class Ball:
 
     def new_moving_ball(self):
         '''рисует новый движущийся шарик '''
-
-        self.__x += self.__v_x
-        self.__y += self.__v_y
+        self.set_x(self.__x + self.__v_x)
+        self.set_y(self.__y + self.__v_y)
+        # self.__x += self.__v_x
+        # self.__y += self.__v_y
 
         color = COLORS[randint(0, 5)]
-        circle(screen, color, (self.__x, self.__y), self.__r)
+        circle(screen, color, (self.get_x(), self.get_y()), self.get_r())
 
 
 def isCaught(event, x, y, r):
@@ -68,17 +78,16 @@ finished = False
 
 while not finished:
     clock.tick(FPS)
-
+    ball1 = Ball(300, 300)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # click(event)
             if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()):
                 counter += 1
-            # print('Click!', event.pos[0], event.pos[1], x, y, r)
+
     text_surface = my_font.render(f'COUNTER: {counter}', False, (255, 255, 255))
-    ball1 = Ball()
+
     # ball2 = Ball()
     ball1.new_moving_ball()
 
