@@ -10,7 +10,9 @@ pygame.init()
 my_font = pygame.font.SysFont('Comic Sans MS', 30)
 
 FPS = 30
-screen = pygame.display.set_mode((1200, 900))
+WIDTH = 1000
+HIGHT = 700
+screen = pygame.display.set_mode((WIDTH, HIGHT))
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -59,36 +61,64 @@ class Ball:
             self.r
         )
 
-    def hittest(self, obj):
-        """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
+    def hittest(self):
+        """Функция проверяет, сталкивалкивается ли шарик со стеной.
 
-        Args:
-            obj: Обьект, с которым проверяется столкновение.
         Returns:
-            Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
+            Возвращает True в случае столкновения мяча и стены. В противном случае возвращает False.
         """
-        return False
+        delta = 10*(self.vx+self.vy)/FPS
+        if (self.y > self.r + delta) and (self.y < HIGHT - self.r - delta) and (self.x > self.r + delta) and (self.x < WIDTH - self.r - delta):
+            return False
+        else:
+            return True
+
+    def fix_position(self):
+        if (self.x < 1+self.r):
+            self.x = 1+self.r
+        if (self.x > WIDTH-self.r-1):
+            self.x = WIDTH-self.r-1
+        if (self.y < 1+self.r):
+            self.y = 1+self.r
+        if (self.y > HIGHT-self.r-1):
+            self.y = HIGHT-self.r-1
+
+    def rand_v(self):
+        if self.vx < 0:
+            if self.vy < 0:
+                self.vx = randint(1, 10)
+                self.vy = randint(1, 10)
+            else:
+                self.vx = randint(1, 10)
+                self.vy = randint(1, 10) - 12
+        else:
+            if self.vy < 0:
+                self.vx = randint(1, 10) - 12
+                self.vy = randint(1, 10)
+            else:
+                self.vx = randint(1, 10) - 12
+                self.vy = randint(1, 10) - 12
 
     def get_x(self):
-        return self.__x
+        return self.x
 
     def set_x(self, x):
-        self.__x = x
+        self.x = x
 
     def get_y(self):
-        return self.__y
+        return self.y
 
     def set_y(self, y):
-        self.__y = y
+        self.y = y
 
     def get_r(self):
-        return self.__r
+        return self.r
 
     def get_v_x(self):
-        return self.__v_x
+        return self.v_x
 
     def get_v_y(self):
-        return self.__v_y
+        return self.v_y
 
 
 def isCaught(event, x, y, r):
@@ -108,6 +138,9 @@ while not finished:
     clock.tick(FPS)
 
     ball.draw()
+    if ball.hittest():
+        ball.fix_position()
+        ball.rand_v()
     # ball1 = Ball(300, 300)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
