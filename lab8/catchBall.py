@@ -6,7 +6,7 @@ pygame.init()
 my_font = pygame.font.SysFont('Comic Sans MS', 30)
 
 FPS = 1
-screen = pygame.display.set_mode((1200, 900))
+screen = pygame.display.set_mode((1000, 700))
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -44,8 +44,16 @@ class Ball:
 
 
 def isCaught(event, x, y, r):
+    """Функция проверяет, попала ли мышь в шарик.
+
+        Args:
+            event: событие мыши.
+            x, y: координаты шарика
+            r: радиус шарика
+        Returns:
+            Возвращает True в попадания мыши в шарик. В противном случае возвращает False.
+        """
     if (x - event.pos[0]) ** 2 + (y - event.pos[1]) ** 2 < r ** 2:
-        print('Caught!')
         return True
     else:
         return False
@@ -57,14 +65,16 @@ finished = False
 
 while not finished:
     clock.tick(FPS)
-
+    flag = 0
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()) or isCaught(event, ball2.get_x(),
-                                                                                        ball2.get_y(), ball2.get_r()):
-                counter += 1
+            if flag == 0:
+                if isCaught(event, ball1.get_x(), ball1.get_y(), ball1.get_r()) or isCaught(event, ball2.get_x(),
+                                                                                            ball2.get_y(), ball2.get_r()):
+                    counter += 1
+                    flag = 1
 
     text_surface = my_font.render(f'COUNTER: {counter}', False, (255, 255, 255))
     ball1 = Ball()
