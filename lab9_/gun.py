@@ -39,6 +39,29 @@ class Ball:
         self.color = choice(GAME_COLORS)
         self.live = 30
 
+    def change_v(self):
+        '''
+        Функция меняет скорость у шарика
+        в зависимости от его положения(с какой именно стеной он столкнулся)
+        '''
+        if (self.x < self.r + 10) and (self.y < self.r + 10):
+            self.vx = math.sqrt((self.vx**2+self.vy**2)/2)
+            self.vy = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+        elif (self.x > WIDTH - self.r - 10) and (self.y > HEIGHT - self.r - 10):
+            self.vx = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+            self.vy = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+        elif (self.x < self.r + 10) and (self.y > HEIGHT - self.r - 10):
+            self.vx = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+            self.vy = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+        elif (self.x > WIDTH - self.r - 10) and (self.y < self.r + 10):
+            self.vx = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+            self.vy = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
+        elif (self.x < self.r + 10) or (self.x > WIDTH - self.r - 10):
+            self.vx = -self.vx
+        elif (self.y < self.r + 10) or (self.y > HEIGHT - self.r - 10):
+            self.vy = -self.vy
+
+
     def move(self):
         """Переместить мяч по прошествии единицы времени.
 
@@ -50,6 +73,9 @@ class Ball:
         self.x += self.vx
         self.vy -= self.g
         self.y -= self.vy
+        if self.isCol():
+            self.fix_position()
+            self.change_v()
 
     def draw(self):
         pygame.draw.circle(
@@ -168,10 +194,6 @@ class Gun:
 
 
 class Target:
-
-
-    # FIXME: don't work!!! How to call this functions when object is created?
-    # self.new_target()
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
         self.x = rnd.randint(600, 780)
