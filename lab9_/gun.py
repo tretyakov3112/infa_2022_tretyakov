@@ -44,6 +44,7 @@ class Ball:
         Функция меняет скорость у шарика
         в зависимости от его положения(с какой именно стеной он столкнулся)
         '''
+        k = 0.7
         if (self.x < self.r + 10) and (self.y < self.r + 10):
             self.vx = math.sqrt((self.vx**2+self.vy**2)/2)
             self.vy = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
@@ -57,9 +58,11 @@ class Ball:
             self.vx = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
             self.vy = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
         elif (self.x < self.r + 10) or (self.x > WIDTH - self.r - 10):
-            self.vx = -self.vx
+            self.vx = -k*self.vx
+            self.vy *= k
         elif (self.y < self.r + 10) or (self.y > HEIGHT - self.r - 10):
-            self.vy = -self.vy
+            self.vy = -k*self.vy
+            self.vx *= k
 
 
     def move(self):
@@ -70,12 +73,18 @@ class Ball:
         и стен по краям окна (размер окна 800х600).
         """
         # FIXME
-        self.x += self.vx
-        self.vy -= self.g
-        self.y -= self.vy
-        if self.isCol():
+        if self.vx ** 2 + self.vy ** 2 >= 10:
+            self.x += self.vx
+            self.vy -= self.g
+            self.y -= self.vy
+            if self.isCol():
+                self.fix_position()
+                self.change_v()
+        else:
             self.fix_position()
-            self.change_v()
+
+
+
 
     def draw(self):
         pygame.draw.circle(
@@ -93,8 +102,10 @@ class Ball:
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
-        # FIXME
-        return False
+        if (self.x-obj.x)**2 + (self.y-obj.y)**2 > (self.r+obj.r)**2:
+            return False
+        else:
+            return True
     def isCol(self):
         """Функция проверяет, сталкивалкивается ли шарик со стеной.
 
