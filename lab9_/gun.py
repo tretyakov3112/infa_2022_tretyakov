@@ -35,6 +35,7 @@ class Ball:
         self.r = 10
         self.vx = 0
         self.vy = 0
+        self.g = 1
         self.color = choice(GAME_COLORS)
         self.live = 30
 
@@ -47,6 +48,7 @@ class Ball:
         """
         # FIXME
         self.x += self.vx
+        self.vy -= self.g
         self.y -= self.vy
 
     def draw(self):
@@ -67,6 +69,33 @@ class Ball:
         """
         # FIXME
         return False
+    def isCol(self):
+        """Функция проверяет, сталкивалкивается ли шарик со стеной.
+
+        Returns:
+            Возвращает True в случае столкновения мяча и стены. В противном случае возвращает False.
+        """
+        delta = 1
+        if (self.y > self.r + delta) and (self.y < HEIGHT - self.r - delta) and (self.x > self.r + delta) and (
+                self.x < WIDTH - self.r - delta):
+            return False
+        else:
+            return True
+
+    def fix_position(self):
+        '''
+        Исправляет позицию шарика при коллизии,
+        чтобы избежать проблем, связанных в краевыми эффектами
+        '''
+        delta1 = 5
+        if self.x < delta1 + self.r:
+            self.x = delta1 + self.r
+        if self.x > WIDTH - self.r - delta1:
+            self.x = WIDTH - self.r - delta1
+        if self.y < delta1 + self.r:
+            self.y = delta1 + self.r
+        if self.y > HEIGHT - self.r - delta1:
+            self.y = HEIGHT - self.r - delta1
 
 
 def rot(an, p0, p1):
@@ -82,6 +111,7 @@ class Gun:
         self.f2_on = 0
         self.an = 1
         self.color = GREY
+        self.length = 30
 
     def fire2_start(self, event):
         self.f2_on = 1
@@ -107,16 +137,20 @@ class Gun:
         """Прицеливание. Зависит от положения мыши."""
         if event:
             self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
+        limit_len = 100
         if self.f2_on:
             self.color = RED
+            if self.length < limit_len:
+                self.length += 1
+
         else:
+            self.length = 30
             self.color = GREY
 
     def draw(self):
-        length = 50
         width = 10
         p0 = np.array([20, 450])
-        p1 = p0 + np.array([length, 0])
+        p1 = p0 + np.array([self.length, 0])
         p2 = p0 + np.array([0, width])
 
         p1_rot = rot(self.an, p0, p1)
@@ -171,26 +205,32 @@ clock = pygame.time.Clock()
 gun = Gun(screen)
 target = Target(screen)
 finished = False
-
+list_of_motions = []
 while not finished:
     screen.fill(WHITE)
     gun.draw()
     target.draw()
+
     for b in balls:
         b.draw()
     pygame.display.update()
 
     clock.tick(FPS)
+
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             gun.fire2_start(event)
+
         elif event.type == pygame.MOUSEBUTTONUP:
             gun.fire2_end(event)
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event)
+            list_of_motions.append(event)
 
+    gun.targetting(list_of_motions[-1])
     for b in balls:
         b.move()
         if b.hittest(target) and target.live:
