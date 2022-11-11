@@ -50,7 +50,7 @@ class Ball:
         '''
         k = 0.7
         if (self.x < self.r + 10) and (self.y < self.r + 10):
-            self.vx = math.sqrt((self.vx**2+self.vy**2)/2)
+            self.vx = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
             self.vy = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
         elif (self.x > WIDTH - self.r - 10) and (self.y > HEIGHT - self.r - 10):
             self.vx = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
@@ -62,12 +62,14 @@ class Ball:
             self.vx = -math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
             self.vy = math.sqrt((self.vx ** 2 + self.vy ** 2) / 2)
         elif (self.x < self.r + 10) or (self.x > WIDTH - self.r - 10):
-            self.vx = -k*self.vx
+            self.vx = -k * self.vx
             self.vy *= k
         elif (self.y < self.r + 10) or (self.y > HEIGHT - self.r - 10):
-            self.vy = -k*self.vy
+            self.vy = -k * self.vy
             self.vx *= k
 
+    def is_stop(self):
+        return self.vx ** 2 + self.vy ** 2 < 10
 
     def move(self):
         """Переместить мяч по прошествии единицы времени.
@@ -77,7 +79,7 @@ class Ball:
         и стен по краям окна (размер окна 800х600).
         """
         # FIXME
-        if self.vx ** 2 + self.vy ** 2 >= 10:
+        if not self.is_stop():
             self.x += self.vx
             self.vy -= self.g
             self.y -= self.vy
@@ -86,9 +88,6 @@ class Ball:
                 self.change_v()
         else:
             self.fix_position()
-
-
-
 
     def draw(self):
         pygame.draw.circle(
@@ -106,10 +105,11 @@ class Ball:
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
-        if (self.x-obj.x)**2 + (self.y-obj.y)**2 > (self.r+obj.r)**2:
+        if (self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 > (self.r + obj.r) ** 2:
             return False
         else:
             return True
+
     def isCol(self):
         """Функция проверяет, сталкивалкивается ли шарик со стеной.
 
@@ -163,8 +163,7 @@ class Gun:
         Происходит при отпускании кнопки мыши.
         Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
-        global balls, bullet
-        bullet += 1
+        global balls
         new_ball = Ball(self.screen)
         new_ball.r += 5
         self.an = math.atan2((event.pos[1] - new_ball.y), (event.pos[0] - new_ball.x))
@@ -180,7 +179,7 @@ class Gun:
             if event.pos[0] - 20 != 0:
                 self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
             elif event.pos[1] < 450:
-                self.an = math.pi/2
+                self.an = math.pi / 2
             elif event.pos[1] >= 450:
                 self.an = -math.pi / 2
         limit_len = 100
@@ -240,7 +239,7 @@ class Target:
 
     def end_text(self):
         text_surface = my_font.render(f'Вы уничтожили цель за {self.points} выстрелов', False, (0, 0, 0))
-        self.screen.blit(text_surface, (WIDTH//2, HEIGHT//2))
+        self.screen.blit(text_surface, (WIDTH // 2, HEIGHT // 2))
 
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -252,20 +251,18 @@ gun = Gun(screen)
 target = Target(screen)
 finished = False
 list_of_motions = []
-# default_event = pygame.__setattr__('Event', 1024-MOUSEMOTION{'pos': (443, 279), 'rel': (-1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})
-# list_of_motions.append(default_event)
 t1 = 0
 t2 = 0
+flag = 0
 while not finished:
     screen.fill(WHITE)
     gun.draw()
     target.draw()
 
     for b in balls:
-        b.draw()
+        if not b.is_stop():
+            b.draw()
 
-    pygame.display.update()
-    print(pygame.event.get())
     clock.tick(FPS)
 
     for event in pygame.event.get():
@@ -277,26 +274,33 @@ while not finished:
 
         elif event.type == pygame.MOUSEBUTTONUP:
             gun.fire2_end(event)
+            bullet += 1
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event)
             list_of_motions.append(event)
 
     if len(list_of_motions) != 0:
         gun.targetting(list_of_motions[-1])
+    text_surface1 = my_font.render(f'Вы уничтожили цель за {bullet} выстрелов', False, (0, 0, 0))
     for b in balls:
         b.move()
         if b.hittest(target) and target.live:
             target.live = 0
             target.hit()
-            # target.end_text()
             t1 = time.time()
-            # time.sleep(2)
             target.new_target()
+            flag = 0
     t2 = time.time()
-    text_surface = my_font.render(f'Вы уничтожили цель за {target.points} выстрелов', False, (0, 0, 0))
+
+    text_surface2 = my_font.render(f'{target.points}', False, (0, 0, 0))
     if t2 - t1 <= 2:
-        print(text_surface)
-        screen.blit(text_surface, (50, 50))
+        print(f'{target.points}')
+        screen.blit(text_surface1, (100, HEIGHT // 3))
+    elif flag == 0:
+        bullet = 0
+        flag = 1
+    screen.blit(text_surface2, (50, 50))
+    pygame.display.update()
     gun.power_up()
 
 pygame.quit()
