@@ -1,10 +1,14 @@
 import math
+import time
+
 import numpy as np
 from random import choice
 import random as rnd
 import pygame
 
+pygame.init()
 FPS = 30
+my_font = pygame.font.SysFont('Comic Sans MS', 30)
 
 RED = 0xFF0000
 BLUE = 0x0000FF
@@ -173,7 +177,12 @@ class Gun:
     def targetting(self, event):
         """Прицеливание. Зависит от положения мыши."""
         if event:
-            self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
+            if event.pos[0] - 20 != 0:
+                self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
+            elif event.pos[1] < 450:
+                self.an = math.pi/2
+            elif event.pos[1] >= 450:
+                self.an = -math.pi / 2
         limit_len = 100
         if self.f2_on:
             self.color = RED
@@ -220,6 +229,7 @@ class Target:
         self.y = rnd.randint(300, 550)
         self.r = rnd.randint(2, 50)
         self.color = RED
+        self.live = 1
 
     def hit(self, points=1):
         """Попадание шарика в цель."""
@@ -228,8 +238,11 @@ class Target:
     def draw(self):
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r)
 
+    def end_text(self):
+        text_surface = my_font.render(f'Вы уничтожили цель за {self.points} выстрелов', False, (0, 0, 0))
+        self.screen.blit(text_surface, (WIDTH//2, HEIGHT//2))
 
-pygame.init()
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bullet = 0
 balls = []
@@ -239,6 +252,10 @@ gun = Gun(screen)
 target = Target(screen)
 finished = False
 list_of_motions = []
+# default_event = pygame.__setattr__('Event', 1024-MOUSEMOTION{'pos': (443, 279), 'rel': (-1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})
+# list_of_motions.append(default_event)
+t1 = 0
+t2 = 0
 while not finished:
     screen.fill(WHITE)
     gun.draw()
@@ -246,8 +263,9 @@ while not finished:
 
     for b in balls:
         b.draw()
-    pygame.display.update()
 
+    pygame.display.update()
+    print(pygame.event.get())
     clock.tick(FPS)
 
     for event in pygame.event.get():
@@ -263,13 +281,22 @@ while not finished:
             gun.targetting(event)
             list_of_motions.append(event)
 
-    gun.targetting(list_of_motions[-1])
+    if len(list_of_motions) != 0:
+        gun.targetting(list_of_motions[-1])
     for b in balls:
         b.move()
         if b.hittest(target) and target.live:
             target.live = 0
             target.hit()
+            # target.end_text()
+            t1 = time.time()
+            # time.sleep(2)
             target.new_target()
+    t2 = time.time()
+    text_surface = my_font.render(f'Вы уничтожили цель за {target.points} выстрелов', False, (0, 0, 0))
+    if t2 - t1 <= 2:
+        print(text_surface)
+        screen.blit(text_surface, (50, 50))
     gun.power_up()
 
 pygame.quit()
