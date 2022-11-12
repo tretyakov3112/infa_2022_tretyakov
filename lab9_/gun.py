@@ -6,6 +6,12 @@ from random import choice
 import random as rnd
 import pygame
 
+filename = "myachik.png"
+ball_surf = pygame.image.load(filename)
+scaled_ball = pygame.transform.scale(
+    ball_surf, (ball_surf.get_width() // 80,
+                ball_surf.get_height() // 80))
+
 pygame.init()
 FPS = 30
 my_font = pygame.font.SysFont('Comic Sans MS', 30)
@@ -69,6 +75,7 @@ class Ball:
             self.vx *= k
 
     def is_stop(self):
+        """Проверяет не остановился лт шарик"""
         return self.vx ** 2 + self.vy ** 2 < 10
 
     def move(self):
@@ -78,7 +85,6 @@ class Ball:
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        # FIXME
         if not self.is_stop():
             self.x += self.vx
             self.vy -= self.g
@@ -90,6 +96,7 @@ class Ball:
             self.fix_position()
 
     def draw(self):
+        """Отрисовка шарика"""
         pygame.draw.circle(
             self.screen,
             self.color,
@@ -140,6 +147,7 @@ class Ball:
 
 
 def rot(an, p0, p1):
+    """Поворот точки р1 относительно р0 на угол an"""
     x1_rot = p0[0] + (p1[0] - p0[0]) * math.cos(an) - (p1[1] - p0[1]) * math.sin(an)
     y1_rot = p0[1] + (p1[0] - p0[0]) * math.sin(an) + (p1[1] - p0[1]) * math.cos(an)
     return np.array([x1_rot, y1_rot])
@@ -147,6 +155,7 @@ def rot(an, p0, p1):
 
 class Gun:
     def __init__(self, screen: pygame.Surface):
+        """Конструктор класса Gun"""
         self.screen = screen
         self.f2_power = 10
         self.f2_on = 0
@@ -155,6 +164,7 @@ class Gun:
         self.length = 30
 
     def fire2_start(self, event):
+        """Отвечает за начало стрельбы"""
         self.f2_on = 1
 
     def fire2_end(self, event):
@@ -193,6 +203,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
+        """Отрисовка пушки"""
         width = 10
         p0 = np.array([20, 450])
         p1 = p0 + np.array([self.length, 0])
@@ -204,6 +215,7 @@ class Gun:
         pygame.draw.polygon(self.screen, self.color, [p2_rot, p0, p1_rot, p3_rot])
 
     def power_up(self):
+        """Регулирует силу выстрела"""
         if self.f2_on:
             if self.f2_power < 100:
                 self.f2_power += 1
@@ -214,6 +226,7 @@ class Gun:
 
 class Target:
     def __init__(self, screen: pygame.Surface):
+        """Конструктор класса Target"""
         self.screen = screen
         self.x = rnd.randint(600, 780)
         self.y = rnd.randint(300, 550)
@@ -235,12 +248,43 @@ class Target:
         self.points += points
 
     def draw(self):
+        """Отрисовка мишени"""
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r)
 
-    def end_text(self):
-        text_surface = my_font.render(f'Вы уничтожили цель за {self.points} выстрелов', False, (0, 0, 0))
-        self.screen.blit(text_surface, (WIDTH // 2, HEIGHT // 2))
 
+class SuperTarget(Target):
+    def __init__(self):
+        """Конструктор класса SuperTarget"""
+
+        self.x = rnd.randint(300, 500)
+        self.y = rnd.randint(100, 350)
+        self.r = rnd.randint(2, 50)
+        self.color = RED
+        self.points = 0
+        self.live = 1
+        self.an = 0
+
+    def new_target(self):
+        """ Инициализация новой цели. """
+        self.x = rnd.randint(300, 500)
+        self.y = rnd.randint(100, 350)
+        self.r = rnd.randint(2, 50)
+        self.color = RED
+        self.live = 1
+
+    def hit(self, points=1):
+        """Попадание шарика в цель."""
+        self.points += points
+
+    def rotate(self):
+        self.an += 10
+
+    def draw(self):
+        rot = pygame.transform.rotate(
+            scaled_ball, self.an)
+        w = scaled_ball.get_width()
+        h = scaled_ball.get_height()
+        screen.blit(rot, (self.x-w, self.y-h))
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bullet = 0
@@ -249,15 +293,20 @@ balls = []
 clock = pygame.time.Clock()
 gun = Gun(screen)
 target = Target(screen)
+superTarget = SuperTarget()
 finished = False
 list_of_motions = []
-t1 = 0
+t11 = 0
+t12 = 0
 t2 = 0
-flag = 0
+flag1 = 0
+flag2 = 0
 while not finished:
     screen.fill(WHITE)
     gun.draw()
     target.draw()
+    superTarget.rotate()
+    superTarget.draw()
 
     for b in balls:
         if not b.is_stop():
@@ -287,18 +336,28 @@ while not finished:
         if b.hittest(target) and target.live:
             target.live = 0
             target.hit()
-            t1 = time.time()
+            t11 = time.time()
             target.new_target()
-            flag = 0
+            flag1 = 0
+        if b.hittest(superTarget) and superTarget.live:
+            superTarget.live = 0
+            superTarget.hit()
+            t12 = time.time()
+            superTarget.new_target()
+            flag2 = 0
     t2 = time.time()
 
-    text_surface2 = my_font.render(f'{target.points}', False, (0, 0, 0))
-    if t2 - t1 <= 2:
-        print(f'{target.points}')
+    text_surface2 = my_font.render(f'{target.points+superTarget.points}', False, (0, 0, 0))
+    if t2 - t11 <= 2:
         screen.blit(text_surface1, (100, HEIGHT // 3))
-    elif flag == 0:
+    elif flag1 == 0:
         bullet = 0
-        flag = 1
+        flag1 = 1
+    if t2 - t12 <= 2:
+        screen.blit(text_surface1, (100, HEIGHT // 3))
+    elif flag2 == 0:
+        bullet = 0
+        flag2 = 1
     screen.blit(text_surface2, (50, 50))
     pygame.display.update()
     gun.power_up()
