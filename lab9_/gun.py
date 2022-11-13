@@ -6,11 +6,11 @@ from random import choice
 import random as rnd
 import pygame
 
-filename = "myachik.png"
+filename = "andrew1.png"
 ball_surf = pygame.image.load(filename)
 scaled_ball = pygame.transform.scale(
-    ball_surf, (ball_surf.get_width() // 80,
-                ball_surf.get_height() // 80))
+    ball_surf, (ball_surf.get_width() // 1,
+                ball_surf.get_height() // 1))
 
 pygame.init()
 FPS = 30
